@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ollama RPG</title>
+    <style>
+      body {
+        background-color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      #gameContainer {
+        position: relative;
+      }
+
+      canvas {
+        border: 1px solid black;
+        display: block;
+      }
+
+      #dialogueWindow {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 700px;
+        height: 200px;
+        background: #c8c8c8;
+        border: 2px solid #646464;
+        border-radius: 5px;
+        padding: 10px;
+      }
+
+      #dialogueHeader {
+        position: absolute;
+        top: -30px;
+        left: 10px;
+        background: #b4b4b4;
+        padding: 5px 20px;
+        border-radius: 5px;
+        border: 2px solid #646464;
+      }
+
+      #closeButton {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        background: #ff6b6b;
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      #dialogueContent {
+        height: calc(100% - 40px);
+        overflow-y: auto;
+        margin-bottom: 5px;
+      }
+
+      #dialogueInput {
+        position: absolute;
+        bottom: 5px;
+        left: 10px;
+        width: calc(100% - 20px);
+        height: 30px;
+        padding: 5px;
+        font-size: 16px;
+        border: 1px solid #646464;
+        border-radius: 3px;
+      }
+
+      .message {
+        margin: 5px 0;
+      }
+
+      .speaker {
+        color: #444;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameContainer">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <div id="dialogueWindow">
+        <div id="dialogueHeader"></div>
+        <button id="closeButton">×</button>
+        <div id="dialogueContent"></div>
+        <input
+          type="text"
+          id="dialogueInput"
+          placeholder="Type your message..."
+        />
+      </div>
+    </div>
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
