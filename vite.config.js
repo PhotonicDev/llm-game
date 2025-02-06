@@ -9,4 +9,6 @@ export default defineConfig({
   resolve: {
     extensions: [".js", ".jsx"],
   },
+  publicDir: "public",
+  assetsInclude: ["**/*.png"],
 });

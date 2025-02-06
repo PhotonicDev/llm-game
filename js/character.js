@@ -19,47 +19,85 @@ Respond in character, keeping responses concise and natural.`;
 }
 
 export class Character {
-  constructor(characterCard, position, color = "#FF0000") {
+  constructor(characterCard, position, spriteNumber) {
     this.characterCard = characterCard;
     this.position = position;
-    this.color = color;
-    this.size = 32;
-    this.rect = {
-      x: position.x,
-      y: position.y,
-      width: this.size,
-      height: this.size,
+    this.size = 56;
+    this.frameWidth = 48;
+    this.frameHeight = 48;
+    this.currentFrame = 0;
+    this.isLoaded = false;
+
+    // Create and load sprite
+    this.sprite = new Image();
+    this.sprite.onload = () => {
+      this.isLoaded = true;
     };
+    this.sprite.onerror = (e) => {
+      console.error(`Failed to load sprite for ${characterCard.name}:`, e);
+    };
+
+    this.sprite.src = "sprites/human" + spriteNumber + ".png";
   }
 
   draw(ctx) {
-    ctx.beginPath();
-    ctx.arc(
-      this.position.x + this.size / 2,
-      this.position.y + this.size / 2,
-      this.size / 3,
-      0,
-      Math.PI * 2
-    );
-    ctx.fillStyle = this.color;
-    ctx.fill();
+    ctx.save();
 
-    // Add distinctive cross mark
-    ctx.beginPath();
-    const center = {
-      x: this.position.x + this.size / 2,
-      y: this.position.y + this.size / 2,
-    };
-    const markSize = this.size / 6;
+    if (!this.isLoaded || !this.sprite.complete || !this.sprite.naturalWidth) {
+      // Draw fallback shape if sprite isn't loaded
+      ctx.beginPath();
+      ctx.arc(
+        this.position.x + this.size / 2,
+        this.position.y + this.size / 2,
+        this.size / 3,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = "#FF0000";
+      ctx.fill();
+    } else {
+      try {
+        // Use our original frame dimensions since we know the sprite sheet structure
+        const frameWidth = 48; // Single frame width
+        const frameHeight = 48; // Single frame height
+        const frameX = 0; // First frame X position
+        const frameY = 0; // First frame Y position
 
-    ctx.moveTo(center.x - markSize, center.y);
-    ctx.lineTo(center.x + markSize, center.y);
-    ctx.moveTo(center.x, center.y - markSize);
-    ctx.lineTo(center.x, center.y + markSize);
+        ctx.imageSmoothingEnabled = false;
 
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+        // Draw just the first frame from the sprite sheet
+        ctx.drawImage(
+          this.sprite,
+          frameX,
+          frameY,
+          frameWidth,
+          frameHeight,
+          this.position.x,
+          this.position.y,
+          this.size,
+          this.size
+        );
+      } catch (error) {
+        console.error("Error drawing sprite:", error);
+        console.log("Sprite details:", {
+          complete: this.sprite.complete,
+          naturalWidth: this.sprite.naturalWidth,
+          naturalHeight: this.sprite.naturalHeight,
+          src: this.sprite.src,
+          dimensions: `${this.sprite.width}x${this.sprite.height}`,
+        });
+      }
+    }
+
+    // Draw name
+    ctx.fillStyle = "white";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    const nameX = this.position.x + this.size / 2;
+    const nameY = this.position.y - 5;
+    ctx.fillText(this.characterCard.name, nameX, nameY);
+
+    ctx.restore();
   }
 }
 
@@ -67,68 +105,80 @@ export class Character {
 export const characters = [
   new Character(
     new CharacterCard(
-      "The Collector",
-      "Obsessive, methodical, unnervingly calm",
-      "A demon who collects last breaths of their victims in ornate bottles. Known for their precise 'work'",
-      "Find new unique specimens for their collection while avoiding suspicion",
-      "Speaks with clinical detachment, frequently references their 'collection'"
+      "Dr. Mortis",
+      "Methodical, precise, theatrical",
+      "A demon surgeon who combines medical expertise with artistic flair",
+      "Perfecting the art of suffering through surgical precision",
+      "Speaks clinically but with dramatic flourish",
+      true, // isKiller
+      "something about the surgeon's perfect cuts..." // lastWords
     ),
     { x: 300, y: 200 },
-    "#8B0000" // Dark blood red
+    0 // Use human0.png
   ),
   new Character(
     new CharacterCard(
-      "Madame Viscera",
-      "Aristocratic, sadistic, theatrical",
-      "A fallen noble who runs an underground 'theater' where the performances are always fatal",
-      "Maintain their reputation as Hell's premier artist of pain",
-      "Speaks in flowery language, mixing theater terms with gruesome imagery"
+      "Sister Pain",
+      "Sadistic, religious, meticulous",
+      "A fallen nun who found her calling in Hell's torture chambers",
+      "Bringing divine suffering to the damned",
+      "Mixes religious terminology with torture techniques",
+      false,
+      "the holy water burns..." // lastWords
     ),
-    { x: 500, y: 300 },
-    "#4B0082" // Deep purple
+    { x: 400, y: 300 },
+    1 // Use human1.png
   ),
   new Character(
     new CharacterCard(
-      "Dr. Torment",
-      "Intellectual, experimental, unhinged",
-      "A twisted scientist obsessed with studying pain thresholds and fear responses",
-      "Further their 'research' into the limits of suffering",
-      "Uses clinical terminology to describe horrific acts"
+      "Director Agony",
+      "Artistic, passionate, perfectionist",
+      "A theatrical director who stages elaborate death scenes",
+      "Creating masterpieces of suffering",
+      "Uses dramatic and artistic metaphors",
+      false,
+      "the stage was set perfectly..." // lastWords
     ),
-    { x: 400, y: 150 },
-    "#006400" // Dark green
+    { x: 500, y: 200 },
+    2 // Use human2.png
   ),
   new Character(
     new CharacterCard(
-      "The Whisperer",
-      "Manipulative, subtle, insidious",
-      "A demon who drives others to murder through whispered suggestions",
-      "Create elaborate schemes of betrayal and murder",
-      "Speaks in hushed tones, often completing others' sentences"
+      "Collector Vex",
+      "Obsessive, analytical, proud",
+      "A collector of rare torture implements and pain artifacts",
+      "Curating the finest collection of suffering in Hell",
+      "Speaks like an art curator describing masterpieces",
+      false,
+      "their collection was incomplete..." // lastWords
     ),
-    { x: 200, y: 400 },
-    "#483D8B" // Dark slate blue
+    { x: 600, y: 300 },
+    3 // Use human3.png
   ),
   new Character(
     new CharacterCard(
-      "Sister Agony",
-      "Religious zealot, delusional, intense",
-      "A fallen nun who believes torture purifies souls",
-      "Cleanse sinners through elaborate rituals of pain",
-      "Mixes religious terminology with descriptions of torture"
+      "Professor Torment",
+      "Academic, experimental, detached",
+      "A scholar of pain who conducts twisted experiments",
+      "Advancing the science of suffering",
+      "Uses academic language to describe torture",
+      false,
+      "the experiment wasn't finished..." // lastWords
     ),
-    { x: 600, y: 200 },
-    "#800080" // Purple
+    { x: 700, y: 200 },
+    4 // Use human4.png
   ),
   new Character(
     new CharacterCard(
-      "The Butcher",
-      "Brutal, direct, prideful",
-      "A demon who takes artistic pride in dismemberment",
-      "Create their masterpiece of mutilation",
-      "Speaks like a proud artisan about their gruesome work"
+      "Maestro Malice",
+      "Musical, elegant, sophisticated",
+      "A composer who orchestrates symphonies of screams",
+      "Creating harmonies of horror",
+      "Describes everything in musical terms",
+      false,
+      "the final note was perfect..." // lastWords
     ),
-    { x: 350, y: 450 },
-    "#8B4513" // Saddle brown
+    { x: 550, y: 400 },
+    5 // Use human5.png
   ),
 ];
