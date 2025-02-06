@@ -12,9 +12,19 @@ export function useGameLoop() {
     dialogueSystem: null,
     crimeSceneNarrator: null,
     ctx: null,
+    dialogueActive: false,
   });
   const animationFrameRef = useRef(null);
   const keysRef = useRef(new Set());
+  const dialogueActiveRef = useRef(false);
+
+  const setDialogueActive = (active) => {
+    dialogueActiveRef.current = active;
+    setGameState((prev) => ({
+      ...prev,
+      dialogueActive: active,
+    }));
+  };
 
   useEffect(() => {
     // Initialize game components
@@ -47,6 +57,8 @@ export function useGameLoop() {
       dialogueSystem,
       crimeSceneNarrator,
       ctx,
+      dialogueActive: false,
+      setDialogueActive,
     });
 
     // Set up keyboard event listeners
@@ -58,7 +70,7 @@ export function useGameLoop() {
 
     // Game loop
     function gameLoop() {
-      if (!player.moving) {
+      if (!dialogueActiveRef.current && !player.moving) {
         const dx =
           (keysRef.current.has("d") ? 1 : 0) -
           (keysRef.current.has("a") ? 1 : 0);

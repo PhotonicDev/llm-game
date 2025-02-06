@@ -20,9 +20,9 @@ export class GameWorld {
 
     // Create textures
     this.textures = {
-      grass: "#647D64",
+      grass: "#424242",
       path: "#BC9E89",
-      water: "#4F6BBF",
+      water: "#ff0000",
       flowers: "#9B93BF",
     };
   }

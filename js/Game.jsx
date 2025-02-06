@@ -6,8 +6,14 @@ export function Game() {
   const [dialogueActive, setDialogueActive] = useState(false);
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [gameEndState, setGameEndState] = useState(null);
-  const { gameWorld, player, dialogueSystem, crimeSceneNarrator } =
-    useGameLoop();
+  const {
+    gameWorld,
+    player,
+    dialogueSystem,
+    crimeSceneNarrator,
+    dialogueActive: gameDialogueActive,
+    setDialogueActive: setGameDialogueActive,
+  } = useGameLoop();
 
   const handleClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -17,6 +23,7 @@ export function Game() {
     const clickResult = gameWorld.handleClick(x, y);
     if (clickResult) {
       setDialogueActive(true);
+      setGameDialogueActive(true);
       if (clickResult.type === "character") {
         setCurrentCharacter({
           type: "character",
@@ -36,6 +43,7 @@ export function Game() {
 
   const handleCloseDialogue = () => {
     setDialogueActive(false);
+    setGameDialogueActive(false);
     setCurrentCharacter(null);
   };
 
