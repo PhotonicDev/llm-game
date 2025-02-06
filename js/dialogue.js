@@ -2,22 +2,30 @@ export class DialogueSystem {
   constructor() {
     this.baseUrl = "http://localhost:11434";
     this.maxCharsPerLine = 50;
-    this.conversationHistories = new Map(); // Map to store histories for each NPC
+    this.conversations = new Map(); // Single map for all conversations
   }
 
   async *streamResponse(characterPrompt, playerInput) {
     try {
+      const requestBody = {
+        model: "gemma2:2b",
+        prompt: `${characterPrompt}\nPlayer: ${playerInput}\nResponse:`,
+        stream: true,
+      };
+
+      console.log("🚀 Sending request:", requestBody);
+
       const response = await fetch(`${this.baseUrl}/api/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: "gemma2:2b",
-          prompt: `${characterPrompt}\nPlayer: ${playerInput}\nResponse:`,
-          stream: true,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const reader = response.body.getReader();
       let currentText = "";
@@ -35,7 +43,11 @@ export class DialogueSystem {
               const jsonResponse = JSON.parse(line);
               if (jsonResponse.response) {
                 currentText += jsonResponse.response;
-                yield this.wrapText(currentText);
+                console.log("📨 Yielding response:", currentText);
+                yield currentText;
+              }
+              if (jsonResponse.done) {
+                return;
               }
             } catch (e) {
               console.error("Error parsing JSON:", e);
@@ -44,25 +56,52 @@ export class DialogueSystem {
         }
       }
     } catch (error) {
-      console.error("Error in stream response:", error);
+      console.error("Stream error:", error);
       yield "Sorry, something went wrong.";
     }
   }
 
-  addToHistory(speaker, message, npcName) {
+  addToHistory(speaker, message, contextId) {
     if (!message) return;
 
-    if (!this.conversationHistories.has(npcName)) {
-      this.conversationHistories.set(npcName, []);
+    if (!this.conversations.has(contextId)) {
+      this.conversations.set(contextId, []);
     }
 
-    const history = this.conversationHistories.get(npcName);
-    history.push({ speaker, message });
+    const messageId = Math.random().toString(36).substring(7);
+    const newMessage = {
+      id: messageId,
+      speaker,
+      message,
+      timestamp: new Date(),
+    };
 
-    // Keep last 10 messages for each NPC
-    if (history.length > 10) {
-      history.shift();
+    const history = this.conversations.get(contextId);
+    history.push(newMessage);
+    console.log("�� Added message:", { speaker, message, contextId, history });
+    return messageId;
+  }
+
+  updateMessage(contextId, messageId, newMessage) {
+    const history = this.conversations.get(contextId);
+    if (history) {
+      const messageIndex = history.findIndex((msg) => msg.id === messageId);
+      if (messageIndex !== -1) {
+        history[messageIndex] = {
+          ...history[messageIndex],
+          message: newMessage,
+        };
+        console.log("🔄 Updated message:", { messageId, newMessage, history });
+        return true;
+      }
     }
+    return false;
+  }
+
+  getHistory(contextId) {
+    const history = this.conversations.get(contextId) || [];
+    console.log("📜 Getting history:", { contextId, history });
+    return [...history]; // Return a copy to prevent direct mutations
   }
 
   wrapText(text) {
@@ -83,14 +122,18 @@ export class DialogueSystem {
     return lines.join("\n");
   }
 
-  getFormattedHistory(npcName, maxLines = 8) {
-    const history = this.conversationHistories.get(npcName) || [];
+  getFormattedHistory(contextId, type = "character", maxLines = 8) {
+    const historyMap =
+      type === "crime-scene"
+        ? this.crimeSceneHistory
+        : this.conversationHistories;
+    const history = historyMap.get(contextId) || [];
     return history
       .slice(-maxLines)
       .map((entry) => `${entry.speaker}: ${entry.message}`);
   }
 
-  clearHistory(npcName) {
-    this.conversationHistories.delete(npcName);
+  clearHistory(contextId) {
+    this.conversations.delete(contextId);
   }
 }

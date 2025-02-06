@@ -1,3 +1,5 @@
+import { CrimeScene } from "./crime_scene.js";
+
 export class GameWorld {
   constructor(width, height) {
     this.width = width;
@@ -5,9 +7,16 @@ export class GameWorld {
     this.tileSize = 32;
     this.characters = [];
     this.selectedCharacter = null;
+    this.hasInvestigatedScene = false;
 
     // Create terrain grid
     this.terrain = this.generateTerrain();
+
+    // Add crime scene
+    this.crimeScene = new CrimeScene({
+      x: 200, // Adjust position as needed
+      y: 250,
+    });
 
     // Create textures
     this.textures = {
@@ -79,6 +88,9 @@ export class GameWorld {
       }
     }
 
+    // Draw crime scene
+    this.crimeScene.draw(ctx);
+
     // Draw characters
     for (const character of this.characters) {
       character.draw(ctx);
@@ -86,6 +98,25 @@ export class GameWorld {
   }
 
   handleClick(x, y) {
+    // Check for crime scene click
+    const crimeSceneBounds = {
+      x: this.crimeScene.position.x,
+      y: this.crimeScene.position.y,
+      width: this.crimeScene.size,
+      height: this.crimeScene.size,
+    };
+
+    if (
+      x >= crimeSceneBounds.x &&
+      x <= crimeSceneBounds.x + crimeSceneBounds.width &&
+      y >= crimeSceneBounds.y &&
+      y <= crimeSceneBounds.y + crimeSceneBounds.height
+    ) {
+      this.hasInvestigatedScene = true;
+      return { type: "crime-scene", scene: this.crimeScene };
+    }
+
+    // Check for character click
     for (const character of this.characters) {
       if (
         x >= character.position.x &&
@@ -94,9 +125,10 @@ export class GameWorld {
         y <= character.position.y + character.size
       ) {
         this.selectedCharacter = character;
-        return character;
+        return { type: "character", character };
       }
     }
+
     this.selectedCharacter = null;
     return null;
   }
