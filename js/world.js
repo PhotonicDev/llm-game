@@ -8,15 +8,20 @@ export class GameWorld {
     this.characters = [];
     this.selectedCharacter = null;
     this.hasInvestigatedScene = false;
+    this.crimeScenes = []; // Array to hold multiple crime scenes
 
     // Create terrain grid
     this.terrain = this.generateTerrain();
 
     // Add crime scene
-    this.crimeScene = new CrimeScene({
-      x: 200, // Adjust position as needed
-      y: 250,
-    });
+    this.addCrimeScene(
+      new CrimeScene({
+        x: 200,
+        y: 250,
+        victim: null, // Initial crime scene has no specific victim
+        evidence: "Initial murder scene",
+      })
+    );
 
     // Create textures
     this.textures = {
@@ -66,6 +71,26 @@ export class GameWorld {
     this.characters.push(character);
   }
 
+  addCrimeScene(crimeScene) {
+    this.crimeScenes.push(crimeScene);
+    this.hasInvestigatedScene = false; // Reset investigation state for new scene
+  }
+
+  createNewCrimeScene(character) {
+    // Calculate new position near the killed character's location
+    const newScene = new CrimeScene({
+      x: character.position.x,
+      y: character.position.y,
+      victim: character,
+      evidence: `${character.characterCard.name}'s body shows signs of the same killer. 
+                Their last words mentioned ${character.characterCard.lastWords}`,
+    });
+    this.addCrimeScene(newScene);
+
+    // Remove the character from the game
+    this.characters = this.characters.filter((c) => c !== character);
+  }
+
   draw(ctx) {
     // Draw terrain
     for (let y = 0; y < this.terrain.length; y++) {
@@ -88,8 +113,10 @@ export class GameWorld {
       }
     }
 
-    // Draw crime scene
-    this.crimeScene.draw(ctx);
+    // Draw all crime scenes
+    for (const crimeScene of this.crimeScenes) {
+      crimeScene.draw(ctx);
+    }
 
     // Draw characters
     for (const character of this.characters) {
@@ -98,22 +125,24 @@ export class GameWorld {
   }
 
   handleClick(x, y) {
-    // Check for crime scene click
-    const crimeSceneBounds = {
-      x: this.crimeScene.position.x,
-      y: this.crimeScene.position.y,
-      width: this.crimeScene.size,
-      height: this.crimeScene.size,
-    };
+    // Check for crime scene clicks
+    for (const crimeScene of this.crimeScenes) {
+      const bounds = {
+        x: crimeScene.position.x,
+        y: crimeScene.position.y,
+        width: crimeScene.size,
+        height: crimeScene.size,
+      };
 
-    if (
-      x >= crimeSceneBounds.x &&
-      x <= crimeSceneBounds.x + crimeSceneBounds.width &&
-      y >= crimeSceneBounds.y &&
-      y <= crimeSceneBounds.y + crimeSceneBounds.height
-    ) {
-      this.hasInvestigatedScene = true;
-      return { type: "crime-scene", scene: this.crimeScene };
+      if (
+        x >= bounds.x &&
+        x <= bounds.x + bounds.width &&
+        y >= bounds.y &&
+        y <= bounds.y + bounds.height
+      ) {
+        this.hasInvestigatedScene = true;
+        return { type: "crime-scene", scene: crimeScene };
+      }
     }
 
     // Check for character click

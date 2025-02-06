@@ -1,7 +1,9 @@
 export class CrimeScene {
-  constructor(position) {
-    this.position = position;
-    this.size = 64; // 2x2 tiles
+  constructor({ x, y, victim = null, evidence = "" }) {
+    this.position = { x, y };
+    this.size = 40;
+    this.victim = victim;
+    this.evidence = evidence;
     this.isInvestigated = false;
     this.clues = {
       "examine body": {
@@ -55,8 +57,7 @@ export class CrimeScene {
   }
 
   draw(ctx) {
-    // Draw crime scene area
-    ctx.fillStyle = "#FF0000";
+    ctx.fillStyle = this.victim ? "#880000" : "#ff0000"; // Darker red for subsequent scenes
     ctx.globalAlpha = 0.3;
     ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
     ctx.globalAlpha = 1.0;
@@ -75,51 +76,16 @@ export class CrimeScene {
     ctx.stroke();
   }
 
-  investigate(action, detail = null) {
-    if (!action) {
-      return {
-        message:
-          "What would you like to do? (examine body, search area, study evidence)",
-        options: Object.keys(this.clues),
-      };
-    }
-
-    const clue = this.clues[action.toLowerCase()];
-    if (!clue) {
-      return {
-        message:
-          "You can't do that here. Try 'examine body', 'search area', or 'study evidence'.",
-        options: Object.keys(this.clues),
-      };
-    }
-
-    if (!clue.found) {
-      clue.found = true;
-      return {
-        message: clue.description,
-        options: Object.keys(clue.details),
-      };
-    }
-
-    if (detail) {
-      const detailInfo = clue.details[detail.toLowerCase()];
-      if (detailInfo) {
-        return {
-          message: detailInfo,
-          options: Object.keys(clue.details),
-        };
-      }
-      return {
-        message: `You can't do that. Try one of these actions: ${Object.keys(
-          clue.details
-        ).join(", ")}`,
-        options: Object.keys(clue.details),
-      };
+  investigate(action, lastResponse) {
+    let message = this.evidence;
+    if (this.victim) {
+      message += `\nVictim: ${this.victim.characterCard.name}`;
+      message += `\nEvidence suggests connection to the first murder.`;
     }
 
     return {
-      message: "What would you like to examine more closely?",
-      options: Object.keys(clue.details),
+      message,
+      options: ["examine body", "search area", "analyze evidence"],
     };
   }
 }

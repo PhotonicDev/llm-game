@@ -103,7 +103,7 @@ export function DialogueWindow({
     setMessages(dialogueSystem.getHistory(character.name));
 
     if (character.type === "crime-scene") {
-      const result = gameWorld.crimeScene.investigate(
+      const result = character.scene.investigate(
         userInput,
         messages[messages.length - 1]?.message
       );
@@ -151,10 +151,7 @@ export function DialogueWindow({
           `Congratulations! You caught the killer: ${character.name}!`
         );
       } else {
-        onGameEnd(
-          "lose",
-          `Wrong accusation! ${character.name} was innocent. Game Over.`
-        );
+        onGameEnd("lose", `Wrong accusation! ${character.name} was innocent.`);
       }
     }, 2000);
   };

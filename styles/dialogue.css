@@ -121,3 +121,23 @@
 .game-end-overlay button:hover {
   background: #666;
 }
+
+.game-end-overlay.newMurder {
+  background: rgba(136, 0, 0, 0.9);
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

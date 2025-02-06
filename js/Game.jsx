@@ -48,14 +48,45 @@ export function Game() {
   };
 
   const handleGameEnd = (result, message) => {
-    setGameEndState({ result, message });
-    setDialogueActive(false);
-
     if (result === "lose") {
-      // Reset game after a delay
+      // Pick a random surviving character (except the killer) to be the next victim
+      const availableVictims = gameWorld.characters.filter(
+        (char) => !char.characterCard.isKiller
+      );
+      if (availableVictims.length > 0) {
+        const nextVictim =
+          availableVictims[Math.floor(Math.random() * availableVictims.length)];
+
+        // Create a new crime scene with the victim
+        gameWorld.createNewCrimeScene(nextVictim);
+
+        // Update the message to include the new murder
+        message += `\n\n${nextVictim.characterCard.name} has been murdered! A new crime scene has appeared.`;
+
+        // Close dialogue but don't end game
+        setDialogueActive(false);
+        setGameDialogueActive(false);
+        setCurrentCharacter(null);
+
+        // Show temporary message about new murder
+        setGameEndState({ result: "newMurder", message });
+        setTimeout(() => {
+          setGameEndState(null);
+        }, 3000);
+        return; // Add this to prevent showing game over
+      }
+
+      // Only show game over if no more victims available
+      setGameEndState({
+        result: "lose",
+        message: "Everyone is dead! Game Over.",
+      });
       setTimeout(() => {
         window.location.reload();
       }, 3000);
+    } else {
+      setGameEndState({ result, message });
+      setDialogueActive(false);
     }
   };
 
