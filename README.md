@@ -1,6 +1,6 @@
 Require running Ollama locally using any model.
 
-(https://ollama.com/library)[https://ollama.com/library]
+[ollama.com](https://ollama.com)
 
 After installing ollama you are must run it with the following command.
 
