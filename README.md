@@ -10,4 +10,8 @@ and spin up a model like gemma2.
 
 `ollama run gemma2:7b`
 
+Install dependencies
+
+`npm install`
+
 Then just run the game with `npm run dev`
